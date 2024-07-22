@@ -1,0 +1,33 @@
+name: testing-trivy
+on:
+    pull_request:
+        paths:
+            - .github/workflows/trivy.yml
+    workflow_dispatch:
+
+permissions: write-all
+jobs:
+    trivy:
+        runs-on: ubuntu-22.04
+        timeout-minutes: 15
+        # defaults:
+        #     run:
+        #         working-directory: infrastructure
+        steps:
+            - name: Checkout
+              uses: actions/checkout@v4
+
+            - name: Run Trivy vulnerability scanner
+              uses: aquasecurity/trivy-action@0.20.0
+              with:
+                scan-type: 'fs'
+                ignore-unfixed: true
+                format: 'sarif'
+                output: 'trivy-results.sarif'
+
+            - name: Upload Trivy scan results to GitHub Security tab
+              uses: github/codeql-action/upload-sarif@v2
+              if: always()
+              with:
+                sarif_file: 'trivy-results.sarif'
+
