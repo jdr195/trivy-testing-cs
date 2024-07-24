@@ -18,19 +18,29 @@ jobs:
 
             - name: Generate Trivy Scan Table
               uses: aquasecurity/trivy-action@0.20.0
+              id: trivy_table
+              continue-on-error: true
               with:
                 scan-type: 'fs'
                 ignore-unfixed: false
                 format: 'table'
                 output: 'trivy-results.txt'
+                exit-code: 1
+                hide-progress: true
+                ignore-unfixed: false
 
             - name: Generate Trivy Scan JSON
               uses: aquasecurity/trivy-action@0.20.0
+              id: trivy_json
+              continue-on-error: true
               with:
                 scan-type: 'fs'
                 ignore-unfixed: false
                 format: 'json'
                 output: 'trivy-results.json'
+                exit-code: 1
+                hide-progress: true
+                ignore-unfixed: false
 
             - name: Upload Trivy JSON Artifact
               uses: actions/upload-artifact@v4
@@ -41,11 +51,11 @@ jobs:
                 overwrite: true
 
             - name: Post Trivy Results to Github Summary
-              id: trivy_output
+              id: trivy_summary
               env:
                 CODE_BLOCK: "```"
               run: |
-                echo "# Trivy Scan Results" >> $GITHUB_STEP_SUMMARY
+                echo "### Trivy Scan Results" >> $GITHUB_STEP_SUMMARY
                 echo $CODE_BLOCK >> $GITHUB_STEP_SUMMARY
                 if [[ -s trivy-results.txt ]]; then
                   cat trivy-results.txt >> $GITHUB_STEP_SUMMARY
@@ -53,6 +63,49 @@ jobs:
                   echo "No findings to report!" >> $GITHUB_STEP_SUMMARY
                 fi
                 echo $CODE_BLOCK >> $GITHUB_STEP_SUMMARY
+
+            - name: Publish Trivy Output
+              id: trivy_output
+              run: |
+                echo 'trivy<<EOF' >> "$GITHUB_OUTPUT"
+                if [[ -s trivy-results.txt ]]; then
+                  cat trivy-results.txt >> "$GITHUB_OUTPUT"
+                else
+                  echo "No findings to report!" >> "$GITHUB_OUTPUT"
+                fi
+                echo "EOF" >> "$GITHUB_OUTPUT"
+
+            - name: Trivy Comment
+              uses: actions/github-script@v7.0.1
+              with:
+                script: |
+                    // 1. Retrieve existing bot comments for the PR
+                    const { data: comments } = await github.rest.issues.listComments({
+                      owner: context.repo.owner,
+                      repo: context.repo.repo,
+                      issue_number: context.issue.number,
+                    })
+
+                    // 2. Prepare format of the comment
+                    const output = `#### Trivy 🖌\`${{ steps.trivy_table.outcome }}\`
+
+                    <details><summary>Show Trivy Findings</summary>
+
+                    \`\`\`
+                    ${{ steps.trivy_output.outputs.trivy }}
+                    \`\`\`
+
+                    </details>
+
+                    *Pusher: @${{ github.actor }}, Action: \`${{ github.event_name }}\`, Working Directory: \`${{ inputs.tf-working-dir }}\`, Workflow: \`${{ github.workflow }}\`*`;
+
+                    github.rest.issues.createComment({
+                        issue_number: context.issue.number,
+                        owner: context.repo.owner,
+                        repo: context.repo.repo,
+                        body: output
+                      })
+
 
             # - name: Run Trivy vulnerability scanner2
             #   uses: aquasecurity/trivy-action@0.20.0
