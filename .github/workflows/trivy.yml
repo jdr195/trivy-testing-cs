@@ -12,9 +12,6 @@ jobs:
     trivy:
         runs-on: ubuntu-22.04
         timeout-minutes: 15
-        # defaults:
-        #     run:
-        #         working-directory: infrastructure
         steps:
             - name: Checkout
               uses: actions/checkout@v4
@@ -24,20 +21,34 @@ jobs:
               with:
                 scan-type: 'fs'
                 ignore-unfixed: false
-                format: 'sarif'
-                output: 'trivy-results.sarif'
+                format: 'table'
+                output: 'trivy-results.txt'
 
-            - name: Run Trivy vulnerability scanner2
-              uses: aquasecurity/trivy-action@0.20.0
-              with:
-                scan-type: 'fs'
-                ignore-unfixed: false
-                format: 'json'
-                output: 'trivy-results.json'
+            - name: Post Trivy Results to Github Summary
+              id: trivy_output
+              env:
+                CODE_BLOCK: "```"
+              run: |
+                echo "# Trivy Scan Results" >> $GITHUB_STEP_SUMMARY
+                echo $CODE_BLOCK >> $GITHUB_STEP_SUMMARY
+                if [[ -s trivy-results.txt ]]; then
+                  cat trivy-results.txt >> $GITHUB_STEP_SUMMARY
+                else
+                  echo "No findings to report!" >> $GITHUB_STEP_SUMMARY
+                fi
+                echo $CODE_BLOCK >> $GITHUB_STEP_SUMMARY
 
-            - name: Upload Trivy scan results to GitHub Security tab
-              uses: github/codeql-action/upload-sarif@v2
-              if: always()
-              with:
-                sarif_file: 'trivy-results.sarif'
+            # - name: Run Trivy vulnerability scanner2
+            #   uses: aquasecurity/trivy-action@0.20.0
+            #   with:
+            #     scan-type: 'fs'
+            #     ignore-unfixed: false
+            #     format: 'json'
+            #     output: 'trivy-results.json'
+
+            # - name: Upload Trivy scan results to GitHub Security tab
+            #   uses: github/codeql-action/upload-sarif@v2
+            #   if: always()
+            #   with:
+            #     sarif_file: 'trivy-results.sarif'
 
