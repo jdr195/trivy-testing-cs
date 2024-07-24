@@ -27,7 +27,6 @@ jobs:
                 output: 'trivy-results.txt'
                 exit-code: 1
                 hide-progress: true
-                ignore-unfixed: false
 
             - name: Generate Trivy Scan JSON
               uses: aquasecurity/trivy-action@0.20.0
@@ -40,7 +39,6 @@ jobs:
                 output: 'trivy-results.json'
                 exit-code: 1
                 hide-progress: true
-                ignore-unfixed: false
 
             - name: Upload Trivy JSON Artifact
               uses: actions/upload-artifact@v4
