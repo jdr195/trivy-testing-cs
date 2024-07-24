@@ -16,13 +16,29 @@ jobs:
             - name: Checkout
               uses: actions/checkout@v4
 
-            - name: Run Trivy vulnerability scanner
+            - name: Generate Trivy Scan Table
               uses: aquasecurity/trivy-action@0.20.0
               with:
                 scan-type: 'fs'
                 ignore-unfixed: false
                 format: 'table'
                 output: 'trivy-results.txt'
+
+            - name: Generate Trivy Scan JSON
+              uses: aquasecurity/trivy-action@0.20.0
+              with:
+                scan-type: 'fs'
+                ignore-unfixed: false
+                format: 'json'
+                output: 'trivy-results.json'
+
+            - name: Upload Trivy JSON Artifact
+              uses: actions/upload-artifact@v4
+              with:
+                name: trivy-results.json
+                path: trivy-results.json
+                if-no-files-found: warn
+                overwrite: true
 
             - name: Post Trivy Results to Github Summary
               id: trivy_output
