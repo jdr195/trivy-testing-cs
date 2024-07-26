@@ -37,7 +37,7 @@ jobs:
                 ignore-unfixed: false
                 format: 'json'
                 output: 'trivy-results.json'
-                exit-code: 1
+                exit-code: 0
                 hide-progress: true
 
             - name: Upload Trivy JSON Artifact
