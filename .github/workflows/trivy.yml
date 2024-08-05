@@ -46,6 +46,6 @@ jobs:
                 format: table
                 hide-progress: true
                 ignore-unfixed: true
-                scan-ref: ./${{ matrix.dir }}
+                scan-ref: ${{ matrix.dir }}
                 scan-type: 'fs'
                 severity: HIGH,CRITICAL
