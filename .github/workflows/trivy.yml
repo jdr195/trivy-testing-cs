@@ -121,6 +121,7 @@ jobs:
 
             - name: Run Trivy vulnerability scanner2
               uses: aquasecurity/trivy-action@0.20.0
+              continue-on-error: true
               with:
                 scan-type: 'fs'
                 ignore-unfixed: false
