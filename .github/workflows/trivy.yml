@@ -18,8 +18,8 @@ jobs:
         id: filter
         with:
           filters: |
-            package1: packages/sub1
-            package2: packages/sub2
+            package1: packages/sub1/**
+            package2: packages/sub2/**
 
     trivy-job:
         runs-on: ubuntu-22.04
