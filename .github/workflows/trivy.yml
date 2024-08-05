@@ -48,4 +48,4 @@ jobs:
                 format: table
                 # exit-code: 1
                 hide-progress: true
-                scan-ref: ${{ matrix.dir }}
+                scan-ref: ./${{ matrix.dir }}
