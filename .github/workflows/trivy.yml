@@ -44,7 +44,7 @@ jobs:
               uses: aquasecurity/trivy-action@0.20.0
               with:
                 exit-code: 1
-                format: table
+                format: github
                 hide-progress: true
                 ignore-unfixed: true
                 scan-ref: ./${{ matrix.dir }}
