@@ -1,4 +1,4 @@
-name: Trivy New
+name: Trivy
 on:
     pull_request:
         paths:
@@ -7,10 +7,9 @@ on:
 
 permissions: write-all
 jobs:
-    trivy-determine-changes:
+    determine-changes:
       runs-on: ubuntu-22.04
       outputs:
-        # Expose matched filters as job 'packages' output variable
         changed_directories: ${{ steps.set-output.outputs.changed_directories }}
       steps:
         - uses: actions/checkout@v3
@@ -32,10 +31,10 @@ jobs:
 
     trivy-scan:
         runs-on: ubuntu-22.04
-        if: ${{ needs.trivy-determine-changes.outputs.changed_directories != '' }}
-        needs: trivy-determine-changes
+        if: ${{ needs.determine-changes.outputs.changed_directories != '' }}
+        needs: determine-changes
         strategy:
-          matrix: ${{ fromJSON(needs.trivy-determine-changes.outputs.changed_directories) }}
+          matrix: ${{ fromJSON(needs.determine-changes.outputs.changed_directories) }}
         steps:
             - name: Checkout
               uses: actions/checkout@v4
@@ -43,10 +42,10 @@ jobs:
             - name: Run Trivy vulnerability scanner
               uses: aquasecurity/trivy-action@0.20.0
               with:
-                scan-type: 'fs'
-                ignore-unfixed: true
-                format: table
                 exit-code: 1
+                format: github
                 hide-progress: true
-                severity: HIGH,CRITICAL
+                ignore-unfixed: true
                 scan-ref: ./${{ matrix.dir }}
+                scan-type: 'fs'
+                severity: HIGH,CRITICAL
