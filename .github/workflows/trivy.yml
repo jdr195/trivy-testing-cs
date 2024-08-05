@@ -44,8 +44,9 @@ jobs:
               uses: aquasecurity/trivy-action@0.20.0
               with:
                 scan-type: 'fs'
-                ignore-unfixed: false
+                ignore-unfixed: true
                 format: table
-                # exit-code: 1
+                exit-code: 1
                 hide-progress: true
+                severity: HIGH,CRITICAL
                 scan-ref: ./${{ matrix.dir }}
