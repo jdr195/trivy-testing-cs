@@ -30,17 +30,9 @@ jobs:
           id: set-output
           run: echo "changed_directories={\"dir\":${{ steps.changed-files.outputs.all_changed_files }}}" >> "$GITHUB_OUTPUT"
 
-
-        # # For pull requests it's not necessary to checkout the code
-        # - uses: dorny/paths-filter@v3
-        #   id: filter
-        #   with:
-        #     filters: |
-        #       package1: packages/sub1/**
-        #       package2: packages/sub2/**
-
     trivy-job:
         runs-on: ubuntu-22.04
+        if: ${{ needs.determine-changes.outputs.changed_directories != '' }}
         needs: determine-changes
         strategy:
           matrix:
