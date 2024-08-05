@@ -7,7 +7,7 @@ on:
 
 permissions: write-all
 jobs:
-    determine-changes:
+    trivy-determine-changes:
       runs-on: ubuntu-22.04
       outputs:
         # Expose matched filters as job 'packages' output variable
@@ -30,12 +30,12 @@ jobs:
           id: set-output
           run: echo "changed_directories={\"dir\":${{ steps.changed-files.outputs.all_changed_files }}}" >> "$GITHUB_OUTPUT"
 
-    trivy-job:
+    trivy-scan:
         runs-on: ubuntu-22.04
-        if: ${{ needs.determine-changes.outputs.changed_directories != '' }}
-        needs: determine-changes
+        if: ${{ needs.trivy-determine-changes.outputs.changed_directories != '' }}
+        needs: trivy-determine-changes
         strategy:
-          matrix: ${{ fromJSON(needs.determine-changes.outputs.changed_directories) }}
+          matrix: ${{ fromJSON(needs.trivy-determine-changes.outputs.changed_directories) }}
         steps:
             - name: Checkout
               uses: actions/checkout@v4
@@ -48,4 +48,4 @@ jobs:
                 format: table
                 # exit-code: 1
                 hide-progress: true
-                scan-ref: ./packages/${{ matrix.dir }}
+                scan-ref: ${{ matrix.dir }}
