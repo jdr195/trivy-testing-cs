@@ -35,8 +35,7 @@ jobs:
         if: ${{ needs.determine-changes.outputs.changed_directories != '' }}
         needs: determine-changes
         strategy:
-          matrix:
-            package: ${{ fromJSON(needs.determine-changes.outputs.changed_directories) }}
+          matrix: ${{ fromJSON(needs.determine-changes.outputs.changed_directories) }}
         steps:
             - name: Checkout
               uses: actions/checkout@v4
@@ -49,4 +48,4 @@ jobs:
                 format: table
                 # exit-code: 1
                 hide-progress: true
-                scan-ref: ./packages/${{ matrix.package }}
+                scan-ref: ./packages/${{ matrix.dir }}
