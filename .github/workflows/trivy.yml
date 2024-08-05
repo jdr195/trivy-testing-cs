@@ -7,26 +7,44 @@ on:
 
 permissions: write-all
 jobs:
-    changes:
+    determine-changes:
       runs-on: ubuntu-22.04
       outputs:
         # Expose matched filters as job 'packages' output variable
-        packages: ${{ steps.filter.outputs.changes }}
+        changed_directories: ${{ steps.set-output.outputs.changed_directories }}
       steps:
-      # For pull requests it's not necessary to checkout the code
-      - uses: dorny/paths-filter@v3
-        id: filter
-        with:
-          filters: |
-            package1: packages/sub1/**
-            package2: packages/sub2/**
+        - uses: actions/checkout@v3
+          with:
+            fetch-depth: 0
+
+        - name: Get changed files
+          id: changed-files
+          uses: tj-actions/changed-files@v35
+          with:
+            dir_names: true
+            dir_names_max_depth: 2  # This is optional. If not provided, full subdirectories' paths will be provided. Use it if you need to trim the output. See docs for details: https://github.com/tj-actions/changed-files/tree/main#inputs.
+            json: true
+            quotepath: false
+
+        - name: 'Set output in the matrix format'
+          id: set-output
+          run: echo "changed_directories={\"dir\":${{ steps.changed-files.outputs.all_changed_files }}}" >> "$GITHUB_OUTPUT"
+
+
+        # # For pull requests it's not necessary to checkout the code
+        # - uses: dorny/paths-filter@v3
+        #   id: filter
+        #   with:
+        #     filters: |
+        #       package1: packages/sub1/**
+        #       package2: packages/sub2/**
 
     trivy-job:
         runs-on: ubuntu-22.04
-        needs: changes
+        needs: determine-changes
         strategy:
           matrix:
-            package: ${{ fromJSON(needs.changes.outputs.packages) }}
+            package: ${{ fromJSON(needs.determine-changes.outputs.changed_directories) }}
         steps:
             - name: Checkout
               uses: actions/checkout@v4
