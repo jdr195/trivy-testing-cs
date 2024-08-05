@@ -1,4 +1,4 @@
-name: testing-trivy
+name: Trivy New
 on:
     pull_request:
         paths:
@@ -7,12 +7,26 @@ on:
 
 permissions: write-all
 jobs:
-    trivy:
+    changes:
+      runs-on: ubuntu-22.04
+      outputs:
+        # Expose matched filters as job 'packages' output variable
+        packages: ${{ steps.filter.outputs.changes }}
+      steps:
+      # For pull requests it's not necessary to checkout the code
+      - uses: dorny/paths-filter@v3
+        id: filter
+        with:
+          filters: |
+            package1: ./packages/sub1
+            package2: ./packages/sub2
+
+    trivy-job:
         runs-on: ubuntu-22.04
-        timeout-minutes: 15
-        # defaults:
-        #     run:
-        #         working-directory: infrastructure
+        needs: changes
+        strategy:
+          matrix:
+            package: ${{ fromJSON(needs.changes.outputs.packages) }}
         steps:
             - name: Checkout
               uses: actions/checkout@v4
@@ -21,13 +35,8 @@ jobs:
               uses: aquasecurity/trivy-action@0.20.0
               with:
                 scan-type: 'fs'
-                ignore-unfixed: false
-                format: 'sarif'
-                output: 'trivy-results.sarif'
-
-            - name: Upload Trivy scan results to GitHub Security tab
-              uses: github/codeql-action/upload-sarif@v2
-              if: always()
-              with:
-                sarif_file: 'trivy-results.sarif'
-
+                ignore-unfixed: true
+                format: table
+                # exit-code: 1
+                hide-progress: true
+                scan-ref: ./packages/${{ matrix.package }}
