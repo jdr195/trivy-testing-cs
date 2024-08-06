@@ -16,13 +16,14 @@ jobs:
         id: filter
         with:
           filters: |
-            packages/sub1: packages/sub1/**
-            sub2: packages/sub2/
+            ./packages/sub1: packages/sub1/**
+            ./packages/sub2: packages/sub2/**
 
   scan:
     needs: determine-changes
     if: ${{ needs.determine-changes.outputs.packages != '[]' }}
     strategy:
+      fail-fast: false
       matrix:
         package: ${{ fromJSON(needs.determine-changes.outputs.packages) }}
     runs-on: ubuntu-22.04
@@ -37,7 +38,7 @@ jobs:
           format: table
           hide-progress: true
           ignore-unfixed: true
-          scan-ref: ./${{ matrix.package }}
+          scan-ref: ${{ matrix.package }}
           scan-type: 'fs'
           severity: HIGH,CRITICAL
 
