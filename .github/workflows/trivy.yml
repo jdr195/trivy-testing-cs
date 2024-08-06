@@ -1,33 +1,47 @@
-name: testing-trivy
+name: Trivy
 on:
-    pull_request:
-        paths:
-            - .github/workflows/trivy.yml
-    workflow_dispatch:
-
-permissions: write-all
+  pull_request:
+    paths:
+      - .github/workflows/trivy.yml
+  workflow_dispatch:
 jobs:
-    trivy:
-        runs-on: ubuntu-22.04
-        timeout-minutes: 15
-        # defaults:
-        #     run:
-        #         working-directory: infrastructure
-        steps:
-            - name: Checkout
-              uses: actions/checkout@v4
+  determine-changes:
+    runs-on: ubuntu-22.04
+    permissions:
+      pull-requests: read
+    outputs:
+      packages: ${{ steps.filter.outputs.changes }}
+    steps:
+      - uses: dorny/paths-filter@v3
+        id: filter
+        with:
+          filters: |
+            ./packages/sub1: packages/sub1/**
+            ./packages/sub2: packages/sub2/**
+            ./Gemfile.lock: Gemfile.lock
+            ./package-lock.json: package-lock.json
 
-            - name: Run Trivy vulnerability scanner
-              uses: aquasecurity/trivy-action@0.20.0
-              with:
-                scan-type: 'fs'
-                ignore-unfixed: false
-                format: 'sarif'
-                output: 'trivy-results.sarif'
+  scan:
+    needs: determine-changes
+    if: ${{ needs.determine-changes.outputs.packages != '[]' }}
+    strategy:
+      fail-fast: false
+      matrix:
+        package: ${{ fromJSON(needs.determine-changes.outputs.packages) }}
+    runs-on: ubuntu-22.04
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
 
-            - name: Upload Trivy scan results to GitHub Security tab
-              uses: github/codeql-action/upload-sarif@v2
-              if: always()
-              with:
-                sarif_file: 'trivy-results.sarif'
-
+      - name: Run Trivy vulnerability scanner
+        uses: aquasecurity/trivy-action@0.20.0
+        with:
+          exit-code: 1
+          format: table
+          hide-progress: true
+          ignore-unfixed: true
+          scan-ref: ${{ matrix.package }}
+          scan-type: fs
+          severity: HIGH,CRITICAL
+          trivyignores: .github/.trivyignore
+          vuln-type: library
