@@ -39,7 +39,7 @@ jobs:
           hide-progress: true
           ignore-unfixed: true
           scan-ref: ${{ matrix.package }}
-          scan-type: 'fs'
+          scan-type: fs
           severity: HIGH,CRITICAL
           trivyignores: .github/.trivyignore
-          vuln-type: fs
+          vuln-type: library
