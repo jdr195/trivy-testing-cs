@@ -51,6 +51,6 @@ jobs:
       - name: Trivy Succeeded
         if: ${{ !(contains(needs.*.result, 'failure')) }}
         run: exit 0
-      - name: Trivy Failed
+      - name: Trivy Failedd
         if: ${{ contains(needs.*.result, 'failure') }}
         run: exit 1
