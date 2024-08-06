@@ -4,48 +4,80 @@ on:
         paths:
             - .github/workflows/trivy.yml
     workflow_dispatch:
-
-permissions: write-all
 jobs:
-    determine-changes:
-      runs-on: ubuntu-22.04
-      outputs:
-        changed_directories: ${{ steps.set-output.outputs.changed_directories }}
-      steps:
-        - uses: actions/checkout@v4
-          with:
-            fetch-depth: 0
+  determine-changes:
+    runs-on: ubuntu-22.04
+    permissions:
+      pull-requests: read
+    outputs:
+      packages: ${{ steps.filter.outputs.changes }}
+    steps:
+      - uses: dorny/paths-filter@v3
+        id: filter
+        with:
+          filters: |
+            sub1: packages/sub1
+            sub2: packages/sub2
 
-        - name: Get changed directories
-          id: changed-files
-          uses: tj-actions/changed-files@v35
-          with:
-            dir_names: true
-            json: true
-            quotepath: false
+  scan:
+    needs: determine-changes
+    strategy:
+      matrix:
+        package: ${{ fromJSON(needs.determine-changes.outputs.packages) }}
+    runs-on: ubuntu-22.04
+    steps:
+      - name: Run Trivy vulnerability scanner
+        uses: aquasecurity/trivy-action@0.20.0
+        with:
+          exit-code: 1
+          format: table
+          hide-progress: true
+          ignore-unfixed: true
+          scan-ref: ${{ matrix.package }}
+          scan-type: 'fs'
+          severity: HIGH,CRITICAL
 
-        - name: 'Set output in the matrix format'
-          id: set-output
-          run: echo "changed_directories={\"dir\":${{ steps.changed-files.outputs.all_changed_files }}}" >> "$GITHUB_OUTPUT"
+# permissions: write-all
+# jobs:
+#     determine-changes:
+#       runs-on: ubuntu-22.04
+#       outputs:
+#         changed_directories: ${{ steps.set-output.outputs.changed_directories }}
+#       steps:
+#         - uses: actions/checkout@v4
+#           with:
+#             fetch-depth: 0
 
-    trivy-scan:
-        runs-on: ubuntu-22.04
-        if: ${{ needs.determine-changes.outputs.changed_directories != '' }}
-        needs: determine-changes
-        strategy:
-          fail-fast: false
-          matrix: ${{ fromJSON(needs.determine-changes.outputs.changed_directories) }}
-        steps:
-            - name: Checkout
-              uses: actions/checkout@v4
+#         - name: Get changed directories
+#           id: changed-files
+#           uses: tj-actions/changed-files@v35
+#           with:
+#             dir_names: true
+#             json: true
+#             quotepath: false
 
-            - name: Run Trivy vulnerability scanner
-              uses: aquasecurity/trivy-action@0.20.0
-              with:
-                exit-code: 1
-                format: table
-                hide-progress: true
-                ignore-unfixed: true
-                scan-ref: ${{ matrix.dir }}
-                scan-type: 'fs'
-                severity: HIGH,CRITICAL
+#         - name: 'Set output in the matrix format'
+#           id: set-output
+#           run: echo "changed_directories={\"dir\":${{ steps.changed-files.outputs.all_changed_files }}}" >> "$GITHUB_OUTPUT"
+
+#     trivy-scan:
+#         runs-on: ubuntu-22.04
+#         if: ${{ needs.determine-changes.outputs.changed_directories != '' }}
+#         needs: determine-changes
+#         strategy:
+#           fail-fast: false
+#           matrix: ${{ fromJSON(needs.determine-changes.outputs.changed_directories) }}
+#         steps:
+#             - name: Checkout
+#               uses: actions/checkout@v4
+
+#             - name: Run Trivy vulnerability scanner
+#               uses: aquasecurity/trivy-action@0.20.0
+#               with:
+#                 exit-code: 1
+#                 format: table
+#                 hide-progress: true
+#                 ignore-unfixed: true
+#                 scan-ref: ${{ matrix.dir }}
+#                 scan-type: 'fs'
+#                 severity: HIGH,CRITICAL
