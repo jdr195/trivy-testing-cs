@@ -27,6 +27,9 @@ jobs:
         package: ${{ fromJSON(needs.determine-changes.outputs.packages) }}
     runs-on: ubuntu-22.04
     steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
       - name: Run Trivy vulnerability scanner
         uses: aquasecurity/trivy-action@0.20.0
         with:
