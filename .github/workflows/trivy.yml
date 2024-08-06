@@ -21,7 +21,7 @@ jobs:
 
   scan:
     needs: determine-changes
-    if: ${{ fromJSON(needs.determine-changes.outputs.packages) != '' }}
+    if: ${{ fromJSON(needs.determine-changes.outputs.packages) != '[]' }}
     strategy:
       matrix:
         package: ${{ fromJSON(needs.determine-changes.outputs.packages) }}
