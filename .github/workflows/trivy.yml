@@ -21,13 +21,13 @@ jobs:
 
   scan:
     needs: determine-changes
+    if: ${{ fromJSON(needs.determine-changes.outputs.packages) != '' }}
     strategy:
       matrix:
         package: ${{ fromJSON(needs.determine-changes.outputs.packages) }}
     runs-on: ubuntu-22.04
     steps:
       - name: Run Trivy vulnerability scanner
-        if: ${{ matrix.package != '' }}
         uses: aquasecurity/trivy-action@0.20.0
         with:
           exit-code: 1
