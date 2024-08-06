@@ -48,7 +48,7 @@ jobs:
     if: always()
     runs-on: ubuntu-22.04
     steps:
-      - name: Trivy Succeeded
+      - name: Trivy Succeededd
         if: ${{ !(contains(needs.scan.result, 'failure')) }}
         run: exit 0
       - name: Trivy Failed
