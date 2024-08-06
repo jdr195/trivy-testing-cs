@@ -1,8 +1,6 @@
 name: Trivy
 on:
   pull_request:
-    paths:
-      - .github/workflows/trivy.yml
   workflow_dispatch:
 jobs:
   determine-changes:
@@ -45,3 +43,14 @@ jobs:
           severity: HIGH,CRITICAL
           trivyignores: .github/.trivyignore
           vuln-type: library
+  status:
+    needs: scan
+    if: always()
+    runs-on: ubuntu-22.04
+    steps:
+      - name: Trivy Succeeded
+        if: ${{ !(contains(needs.*.result, 'failure')) }}
+        run: exit 0
+      - name: Trivy Failed
+        if: ${{ contains(needs.*.result, 'failure') }}
+        run: exit 1
