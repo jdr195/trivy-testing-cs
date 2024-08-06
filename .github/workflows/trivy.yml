@@ -43,3 +43,14 @@ jobs:
           severity: HIGH,CRITICAL
           trivyignores: .github/.trivyignore
           vuln-type: library
+  status:
+    needs: scan
+    if: always()
+    runs-on: ubuntu-22.04
+    steps:
+      - name: Trivy Scan Succeeded
+        if: ${{ !(contains(needs.scan.result, 'failure')) }}
+        run: exit 0
+      - name: Trivy Scan Failed
+        if: ${{ contains(needs.scan.result, 'failure') }}
+        run: exit 1
