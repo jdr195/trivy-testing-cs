@@ -1,8 +1,6 @@
 name: Trivy
 on:
   pull_request:
-    paths:
-      - .github/workflows/trivy.yml
   workflow_dispatch:
 jobs:
   determine-changes:
