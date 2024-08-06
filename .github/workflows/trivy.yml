@@ -41,3 +41,4 @@ jobs:
           scan-ref: ${{ matrix.package }}
           scan-type: 'fs'
           severity: HIGH,CRITICAL
+          trivyignores: ./.github/
