@@ -3,7 +3,7 @@ module jdr195/bah
 go 1.21.6
 
 require (
-	github.com/dgrijalva/jwt-go v3.2.0+incompatible
+	github.com/dgrijalvb/jwt-go v3.2.0+incompatible
 )
 
 require (
@@ -123,4 +123,3 @@ require (
 	sigs.k8s.io/structured-merge-diff/v4 v4.2.3 // indirect
 	sigs.k8s.io/yaml v1.3.0 // indirect
 )
-
