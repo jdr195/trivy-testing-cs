@@ -18,6 +18,7 @@ jobs:
           filters: |
             ./packages/sub1: packages/sub1/**
             ./packages/sub2: packages/sub2/**
+            ./Gemfile.lock: Gemfile.lock
 
   scan:
     needs: determine-changes
