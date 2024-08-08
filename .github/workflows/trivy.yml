@@ -14,10 +14,10 @@ jobs:
         id: filter
         with:
           filters: |
-            ./packages/sub1: packages/sub1/**
-            ./packages/sub2: packages/sub2/**
-            ./Gemfile.lock: Gemfile.lock
-            ./package-lock.json: package-lock.json
+            packages/sub1: packages/sub1/**
+            packages/sub2: packages/sub2/**
+            Gemfile.lock: Gemfile.lock
+            package-lock.json: package-lock.json
 
   scan:
     needs: determine-changes
@@ -48,9 +48,8 @@ jobs:
     if: always()
     runs-on: ubuntu-22.04
     steps:
-      - name: Trivy Succeeded
-        if: ${{ !(contains(needs.*.result, 'failure')) }}
-        run: exit 0
-      - name: Trivy Failed
-        if: ${{ contains(needs.*.result, 'failure') }}
-        run: exit 1
+      - name: Check Trivy result
+        run: |
+          if [ "${{ contains(needs.*.result, 'failure') }}" == "true" ]; then
+            exit 1
+          fi
